@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>React - Life Cycle</title>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <!-- React를 실행. -->
+    <!-- 주의: 사이트를 배포할 때는 "development.js"를 "production.min.js"로 대체하세요. -->
+    <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+
+    <!-- Load Babel -->
+    <!-- v6 <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script> -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- 만든 React 컴포넌트를 실행. -->
+    <script type="text/babel">
+        class Clock extends React.Component {
+            /* * Unmount *****
+                단계 : constructor > getDerivedStateFromProps > render > componentDidMount
+            */
+            constructor(props) {
+                super(props);
+                console.log('constructor', props);
+                this.state = { date: new Date() };
+            }
+
+            /*
+                https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops
+                * 호출시점 
+                getDerivedStateFromProps() 메서드는 
+                컴포넌트가 최초 마운팅 됐을 경우, 
+                부모 컴포넌트에서 전달해주는 props가 업데이트 되었을 경우 호출된다.
+                react 16.3 에서 현재 컴포넌트의 state 만 변경이 발생한 경우에는 호출되지 않는다.
+                react 16.4 부터 현재 컴포넌트의 state 만 변경이 발생한 경우에도 호출된다.
+                * 사용방법
+                getDerivedStateFromProps(nextProps, prevState) 메서드는 인스턴스 메서드로 선언해야 한다.
+                첫번째 인자는 부모컴포넌트로 부터 전달받는 객체 (nextProps), 
+                두번째 인자는 렌더링되기 이전 state 객체다. (prevState)
+                getDerivedStateFromProps() 메서드를 선언하고 return 을 명시하지 않을 경우에는
+                warning이 발생한다.
+                * 메서드 활용
+                render() 메서드가 호출되기 전이므로, props로 받은 데이터를 state에 반영하는
+                작업을 이 메서드에서 하면 된다.
+                React v16.3 이하 버전이라면 componentWillMount(), componentWillUpdate(), componentWillReceiveProps()를 사용할텐데
+                componentWillMount(), componentWillUpdate(), componentWillReceiveProps()에서 처리하던 로직을 
+                getDerivedStateFromProps() 를 사용하여 처리할 수 있다.
+            */
+            static getDerivedStateFromProps(nextProps, prevState) {
+                console.log("static getDerivedStateFromProps()");
+
+                /* 해당 로직은 현재 프로젝트에서 동작되지 않음!  */
+                // if (nextProps.date !== prevState.date) {
+                //   return {
+                //     date: nextProps.date
+                //   };
+                // }
+                return null;
+            }
+
+            componentDidMount() {
+                console.log('componentDidMount', this.state);
+                this.timerID = setInterval(
+                    () => this.tick(),
+                    1000
+                );
+
+            }
+
+            /* * Unmount *****
+                단계 : getDerivedStateFromProps > shouldComponentUpdate > render > getSnapshotBeforeUpdate > componentDidUpdate
+            */
+            /*
+                https://reactjs.org/docs/react-component.html#shouldcomponentupdate
+                * 호출시점:
+                props 또는 state가 새로운 값으로 갱신되어서 렌더링이 발생하기 직전에 호출됨.
+                * 사용방법
+                렌더링을 방지하는 목적으로 사용할 경우 버그로 이어질 수 있습니다.
+                shouldComponentUpdate()의 내용을 직접 작성하는 대신에 PureComponent를 사용하는 것이 좋습니다.
+                PureComponent는 props와 state에 대하여 얕은 비교를 수행하고, 해야 할 갱신 작업을 건너뛸 확률을 낮춥니다.
+                * 주의사항
+                이 메서드는 오직 성능 최적화만을 위한 것입니다.
+                이 메서드 내에서 깊은 동일성 검사를 수행하거나 JSON.stringify()를 사용하는 것을 권하지 않습니다. 아주 비효율적이며 성능을 떨어트릴 수 있습니다.
+            */
+            // shouldComponentUpdate(nextProps, nextState) {
+            //     console.log('shouldComponentUpdate');
+            //     return true;    // 기본값
+            // }
+
+            /*
+              https://reactjs.org/docs/react-component.html#getsnapshotbeforeupdate
+              * 호출시점: 
+              getSnapshotBeforeUpdate() 메서드는 
+              컴포넌트 최초 마운트 시에는 호출되지 않는다.
+              props, state 업데이트가 발생하여 render() 메서드가 호출되고 즉시 
+              호출되는 메서드다. 
+              * 사용방법
+              getSnapshotBeforeUpdate() 메서드에서 return 시
+              return되는 데이터는 componentDidUpdate() 메서드의 세번째 인자로 전달된다.
+              getSnapshotBeforeUpdate() 메서드를 선언하고 따로 return 하지 않을 경우에는
+              warning이 발생한다.
+              또, getSnapshotBeforeUpdate() 메서드를 선언했으면 componentDidUpdate() 도 선언해줘야 한다.
+              componentDidUpdate() 를 선언하지 않으면 warning이 발생한다.
+              * 메서드 활용
+              render() 메서드가 호출되고 바로 getSnapshotBeforeUpdate() 메서드가 호출된다. 
+              DOM 리렌더링이 완료되면 componentDidUpdate() 가 호출되는데, 
+              getSnapshotBeforeUpdate() 메서드가 호출되고 componentDidUpdate() 메서드가 호출되는
+              시점 사이에 변경되는 데이터를 snapshot 한 뒤, 그 데이터를 return 하여
+              componentDidUpdate() 에서 처리해주면 된다.
+              React 공식페이지에는 scrollbar 처리를 예로 하고 있다.
+            */
+            // getSnapshotBeforeUpdate(prevProps, prevState) {
+            //     console.log("getSnapshotBeforeUpdate()");
+            //     return null;
+            // }
+
+            componentDidUpdate() {
+                console.log('componentDidUpdate', this.state);
+            }
+
+            /* * Unmount *****
+                단계 : componentWillUnmount
+            */
+            componentWillUnmount() {
+                console.log('componentWillUnmount', this.state);
+                clearInterval(this.timerID);
+            }
+
+            tick() {
+                this.setState({
+                    date: new Date()
+                });
+            }
+
+            render() {
+                console.log('render', this.state);
+                return (
+                    <div>
+                        <h1>Hello, world!</h1>
+                        <h2>It is {this.state.date.toLocaleTimeString()}.</h2>
+                    </div>
+                );
+            }
+        }
+
+        ReactDOM.render(
+            <Clock />,
+            document.getElementById('root')
+        );
+    </script>
+</body>
+
+</html>
